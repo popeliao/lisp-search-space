@@ -1,0 +1,38 @@
+(defun run ()
+    (setf s0 '((1 2 3 4) (5 6 7 8) (9 10 11 12) (13 14 15 0) (3 3)))
+    (setf sg '((1  2  3  4) (10 0  6  8) (5  9  15 11) (13 7  14 12) (1 1)));12 steps
+    (setf s2 '((1 2 3 0) (5 6 7 4) (9 10 11 8) (13 14 15 12) (0 3)))		;3 steps
+	(setf s3 '((1  2  7  3) (5  10 6  4) (9  14 11 8) (13 0  15 12) (3 1)))		;8 steps
+    (uniform-cost-search s0 s3 #'successor-function)
+)
+
+(defun test ()
+	(setf ss '((1 2 3 0) (5 6 7 4) (9 10 11 8) (13 14 15 12) (0 3)))
+	(setf node (list ss nil nil 0))
+	(setf ll (list node))
+	(mapcar #'(lambda (nod) (incf (nth 3 nod)) ) ll)
+)
+
+;s0 =
+;1  2  3  4
+;5  6  7  8 
+;9  10 11 12
+;13 14 15 0
+
+;sg = 12 step needed
+;1  2  3  4
+;10 0  6  8 
+;5  9  15 11
+;13 7  14 12
+
+;s2 = 3 step needed
+;1  2  3  0
+;5  6  7  4 
+;9  10 11 8
+;13 14 15 12
+
+;s3 = 3 step needed
+;1  2  7  3
+;5  10 6  4 
+;9  14 11 8
+;13 0  15 12

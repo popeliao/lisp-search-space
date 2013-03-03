@@ -1,0 +1,2 @@
+NODES rather than states
+NODE = (State Op Parent-node)

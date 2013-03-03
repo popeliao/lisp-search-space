@@ -1,0 +1,95 @@
+
+(Defun State (node) (first node)) 
+(Defun Operator (node) (second node)) 
+(Defun Parent (node) (third node))
+
+(defun dfs (s0 sg sons) 
+;(print s0)
+;(print sg)
+;(print sons)
+(let ( ( open (list (list s0 nil nil) ) ) ;note the inner list is a node 
+    ( closed nil ) 
+    ( n nil ) 
+    ( daughters nil )) ;ok i added another one 
+    (loop 
+		(if (null open) (return 'fail)) 
+
+		(setf n (pop open)) ;Ok, remove the first node 
+		;and update open and 
+		(push n closed) ;update closed with n since we expand it next
+
+		(if (**equal** (State n) sg)  
+		;and **equal** has to be coded (ie rpm) 
+		(return (trace-solution n)) )
+
+		(setf daughters (funcall sons n))   ;daughters is a list type
+		(setf daughters 
+		(DIFF daughters (append open closed) #'compNode)) ;Remove duplicate states 
+		;previously explored and residing on either open or closed
+
+		(setf open (append daughters open)) ;open is used as a QUEUE, thus its bfs.
+	) ;closes loop 
+) ;closes let 
+) ;closes defun
+
+(defun **equal** (a b)
+    (equal a b))
+
+
+(defun successor-function (node) 
+    (let ( (son-nodes nil) (son-states nil) (state (first node)) ) 
+	;north
+	(setf son-states (North state)) 
+	(setf son-nodes 
+	(mapcar	#'(lambda (son-state) (list son-state 'NORTH node)) son-states ))
+ 	;south
+	(setf son-states (South state)) 
+	(setf son-nodes
+	    (append son-nodes 
+	    (mapcar	#'(lambda (son-state) (list son-state 'SOUTH node)) son-states ))) 
+ 	;east
+	(setf son-states (East state)) 
+	(setf son-nodes
+	    (append son-nodes 
+	    (mapcar	#'(lambda (son-state) (list son-state 'EAST node)) son-states ))) 
+ 	;west
+	(setf son-states (West state)) 
+	(setf son-nodes
+	    (append son-nodes 
+	    (mapcar	#'(lambda (son-state) (list son-state 'WEST node)) son-states ))) 
+	son-nodes)) 
+
+
+
+
+
+
+(defun DIFF (a b comp) 
+    (cond ((null b) a)
+        (t 
+          (setf a (minus a (car b) comp))
+          (intersection a (DIFF a (cdr b) comp))  
+        )))
+
+(defun minus (a bc comp)
+    (cond ((null a) nil)
+    (t        
+        (cond 
+            ((funcall comp (car a) bc) (cdr a))
+            (t  (cons (car a) (minus (cdr a) bc comp))))
+    )))
+
+(defun compNode (x y)
+    (equal (first x) (first y)))
+
+
+
+(defun trace-solution (node) 
+    (cond 
+        ((null (third node)) (print "Beginning of solution")) 
+        (t (trace-solution (Parent node)) 
+            (print (Operator node))
+		(print "*********")
+        )
+    )
+)

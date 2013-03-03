@@ -1,0 +1,327 @@
+ 
+; CSW 4701- Artificial Intelligence 
+; Search Programs in LISP 
+  
+ 
+
+(defun comment (junk) nil) 
+(comment
+
+'(Before talking LISP let me first detail the basic problem-solving 
+algorithms Breadth-first and Depth-first Search in a simple and 
+easy to understand form: 
+ 
+
+Recall we have S0 Sg and Operators
+
+Here we make use of two additional structures: OPEN is a list of 
+states that we have not yet expanded (meaning we haven't searched 
+below them) while CLOSED is a list of states that we have visited 
+and searched beyond
+
+Breadth-first Search:
+
+1. Put S0 onto OPEN (OPEN has just one state on it now)
+
+2. If OPEN is empty EXIT with FAILURE (no solution found)
+
+3. Remove FIRST state on OPEN and call it N 
+Add N to CLOSED 
+If N is Sg EXIT with SUCCESS (whoopee solution found)
+
+4. Let s(N) be all states derrived from N by applying all operators
+
+ADD all nodes in s(N) - {(Union OPEN CLOSED)} to the END of OPEN
+
+5. Go to step 2 
+  
+ 
+
+Depth-first Search:
+
+1. Put S0 onto OPEN (OPEN has just one state on it now)
+
+2. If OPEN is empty EXIT with FAILURE (no solution found)
+
+3. Remove FIRST state on OPEN and call it N 
+Add N to CLOSED 
+If N is Sg EXIT with SUCCESS (whoopee solution found)
+
+4. Let s(N) be all states derrived from N by applying all operators
+
+ADD all nodes in s(N) - {(Union OPEN CLOSED)} to the FRONT of OPEN
+
+5. Go to step 2 
+ 
+
+Can you tell the difference between the two? What is the ONLY difference? 
+What is OPEN in the BFS? What is OPEN in the DFS?
+
+What is line 4 doing? Why do you remove any new derrived states 
+from s(N) if they already appear on OPEN or CLOSED? 
+ 
+
+Shortly we'll be changing the DFS to be DEPTH-BOUNDED to make it more 
+sensible
+
+Now we are about to launch into the implementation of these 
+We'll discuss the following in class
+
+But here to get us started recall that it is not enough ONLY to remember 
+the states but we also need to remember the path in the state space 
+AND the names of the operators used to generate specific edges
+
+To implement this we shall manipulate NODES rather than states 
+A NODE contains all the relevant information we need to implement 
+these searches
+
+))
+
+(Comment
+
+'(Here we will detail the breadth- and depth-first searching programs 
+presented in class 
+First we define a "node" to be a LISP data structure containing 
+the problem STATE a marker indicating the operator used to generate this 
+state from its parent state and a pointer to its parent node Thus node is 
+a LISP list of the form:
+
+(State Operator-name Parent-Node)
+
+Below we will see a specific example of this for the 8-puzzle problem 
+ 
+
+Here we define the auxiliary functions needed to extract appropriate 
+information from the nodes in the bfs code followed immediately by 
+the bfs code
+
+We then define the successor generating function called SONS in the 
+LISP code for bfs which creates a list of succesor nodes Each of 
+the functions called by SONS implements a specific operator in the 
+state space formulation of the problem ))
+
+(Comment '(to explain matters better I've included this little 
+looping program to see how you might organize your problem solver 
+This stuff must appear AFTER you've defined the search functions)) 
+ 
+
+(loop 
+(print "Please tell me the starting position:") 
+(setf state (read)) 
+(setf S0 state ) 
+(print "Please tell me the goal state you wish to find:") 
+(setf goal (read)) 
+(setf SG goal)
+
+(bfs SI SG 'successor-function) 
+) ;end of loop 
+ 
+
+(comment '(Ok now the implementation code follows By the way it should 
+be clear that this following code should preceed the loop appearing 
+above right?)) 
+ 
+
+;First the node accessor functions: 
+(Defun State (node) (first node)) 
+(Defu Operator (node) (second node)) 
+(Defun Parent (node) (third node))
+
+(defun bfs (s0 sg sons) 
+(let ( ( open (list (list s0 nil nil) ) ) ;note the inner list is a node 
+( closed nil ) 
+( n nil ) 
+( daughters nil )) ;ok i added another one 
+(loop 
+(if (null open) (return 'fail)) ;failure, oh well 
+ 
+
+(setf n (pop open)) ;Ok, remove the first node 
+;and update open and 
+(push n closed) ;update closed with n since we expand it next
+
+(comment '(recall that we maintain open and closed lists so that we 
+do not "loop" forever through the search space by visiting 
+states we've previously explored))
+
+(if (**equal** (State n) sg) ;have we found our goal state? 
+;note (state n) = (first n) 
+;and **equal** has to be coded (ie rpm) 
+(print "Great. I found a solution. Here it is:") 
+(return (trace-solution n)) ))
+
+(setf daughters (apply sons n)) ;here we generate new derived states 
+;I used another variable here to break 
+;up the complex expression we wrote in 
+;class so it is a bit easier to understand 
+(setf daughters 
+(DIFF daughters (append open closed))) ;Remove duplicate states 
+;previously explored and residing on either open or closed
+
+(setf open (append open daughters)) ;open is used as a QUEUE, thus its bfs.
+
+) ;closes loop 
+) ;closes let 
+) ;closes defun
+
+(comment '(Now that that is done we'll define the auxilliary functions 
+as follows 
+First the "hard" one Apply the operators to the state to produce 
+a number of daughter states and nodes))
+
+(defun successor-function (node) 
+(let ( (son-nodes nil) (son-states nil) (state (first node)) ) 
+(setf son-states (operator-ONE state)) ;apply problem dependent operator 1 
+(setf son-nodes 
+(mapcar son-states 
+'(lambda(son-state) (list son-state 'ONE node)))) ;here we create 
+;a list of nodes!
+
+(setf son-states (operator-TWO state)) ;and we repeat for each operator 
+(setf son-nodes 
+(append son-nodes 
+(mapcar son-states 
+'(lambda(son-state) (list son-state 'TWO node))))) 
+(comment '(repeat for each operator))
+
+son-nodes)) ;and that's it Son-nodes is returned by the function
+
+(comment '(Now we define the "clean-up" DIFF function that searches through 
+the list of newly generated "nodes" and determines if any state 
+contained in any of the new nodes appears in some node residing on 
+the open or closed list 
+This code is absolutely horrible since it 
+demonstrates a doubly nested do iteration rather than more elegant 
+recursion 
+But I thought you might find some pleasure in seeing 
+C-like code at this point! Note that the "**equal** function is needed here))
+
+(defun DIFF (new-nodes open-and-closed-nodes) 
+(let ( (return-nodes nil) )
+
+(do 
+( (nodes new-nodes (rest nodes))) ;initialize loop variable 
+( (null nodes) return-nodes) ;exit test 
+;body of this loop is another loop 
+(do 
+( (scan-nodes open-and-closed-nodes (rest scan-nodes))) ;initialize loop 
+( (null scan-nodes (push node return-nodes))) ;exit test 
+;body test if state of node appears on open or closed list 
+(cond ((**equal** (State (first nodes)) (State (first scan-nodes))) 
+(return nil))) ;break from the inner loop 
+) ;closes inner loop 
+;if the inner loop doesn't end prematurely, the exit test will 
+;update "return-nodes" . I told you this was C-like! 
+) ;closes outer do 
+return-nodes) ;end of let returning the cleaned up daughter nodes 
+) ;end of function definition. Pretty ugly, huh? 
+ 
+
+(comment '(And finally we have to produce a trace of the path through 
+the search space we generated 
+Here recall that a node has three 
+items in it 
+The first is the state of the problem generated by the 
+successor function 
+The second item is the name of the operator 
+The third item is the parent NODE from which 
+it was generated 
+Note that its parent node contains its own parent as well 
+So trace is very simple:))
+
+(defun trace-solution (node) 
+(cond ((null node) (print "Beginning of solution") nil) 
+(t 
+(trace-solution (Parent node)) 
+(print (Operator node))))) ;Why does this print the sequence of 
+;operator applications correctly?
+
+(comment '(AND THAT'S IT! Yep it looks really complicated and hard to 
+follow 
+I've attempted to use do's above in DIFF to do a simple 
+function 
+Can you tell what its doing? Can you do it better? I bet you can))
+
+(comment 
+'( Anyway here's a specific example for the 8-puzzle:))
+
+(setf s0 '((1 3 nil) (2 6 4) (5 8 7)))
+
+(defun operator-ONE (parent-state) ;move blank "NORTH" 
+(let ((state (copy parent-state))) 
+(cond 
+((member nil (first state)) nil) 
+((member nil (second state) ) 
+(cond 
+((null (caadr state)) (replace (caadr state) (caar state)) 
+(replace (caar state) nil) 
+state) 
+((null (caaddr state))(replace (caaddr state)(cadar state)) 
+(replace (cadar state) nil) 
+state) 
+((null (caadddr state))(replace (caadddr state)(caddar state)) 
+(replace (caddar state) nil) 
+state))) 
+((member nil (caddr state)) 
+;... repeat like above 
+)))) 
+(comment '(Do you see what operator-ONE is doing? Its really ugly and 
+dumb isn't it! BUT what I've done here will have disasterous 
+consequences unless you copy the parent state 
+That's the reason for using another LET environment with a local 
+variable copying the parent state))
+
+(defun operator-TWO (state) ;define it intelligently! 
+)
+
+(comment '(And finally the depth-first search is exactly as the 
+breadth-first seach except for a single change to the program 
+Here is that change: ))
+
+(defun dfs (s0 sg sons) 
+(comment '(put in aproriate lisp code from above))
+
+(setf open (append daughters open)) ;here open is a STACK!
+
+(comment '(put in aproriate lisp code from above)) 
+)
+
+(comment '(In class we'll rewrite dfs to use recursion rather than 
+iteration
+
+Oh yes one more small item 
+What else has to be added to the depth-first search? I'll answer with 
+another question? How deep do you want to search anyway? 
+So what more must we do to the dfs function to make it work correctly?
+
+So for dfs depth bounded we add another parameter: ))
+
+(defun dfs-depth-bounded (s0 sg sons depth)
+
+(comment '(repeat above but add a test if the depthbound has been reached))
+
+)
+
+;and recall we add a depth to each node representation thusly
+
+;(state operator parent depth-of-node)
+
+;add another accessor function 
+(defun depth-of-node (node) (fourth node))
+
+;and finally an additional condition to the original code:
+
+(if (< (depth-of-node n) depth-bound) (Comment '(more code is needed here)) )
+
+;That's about it folks. 
+;The preceeding code is loadable and runnable in LISP provided you complete 
+;the specification of the other three operators for the 8 puzzle. Then 
+;you can sit down and input starting 8-puzzles and goal puzzles and let 
+;you machine smoke....... 
+  
+  
+  
+  
+  
+  
+ 

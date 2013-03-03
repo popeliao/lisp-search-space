@@ -1,0 +1,93 @@
+ ;the returned value of north, south, west, east is a list of state 
+;instead of a state
+
+(defun North (state)
+  (let ((newstate nil))
+
+  (cond
+  ( (<= (first (fifth state)) 0) nil)   ;blank can't move north
+    
+  (t    
+                                    ;otherwise it can
+   (setf newstate                       ;newstate not entirely
+                                        ;necessary, but who knows...
+     (swap (copy-tree state) 
+             (first (fifth state))   ;from row
+             (second (fifth state))  ;from column
+             (- (first (fifth state)) 1) ;to row
+             (second (fifth state))) ;to column
+
+    )
+    (list newstate) ;because north only make one successor, list it logically	
+    )
+	)))
+
+(defun South (state)
+  (let ((newstate nil))
+
+  (cond
+  ( (>= (first (fifth state)) 3) nil)   ;blank can't move south
+    
+  (t (setf newstate
+     (swap (copy-tree state) 
+             (first (fifth state))   ;from row
+             (second (fifth state))  ;from column
+             (+ (first (fifth state)) 1) ;to row
+             (second (fifth state))) ;to column
+
+    )
+    (list newstate) ;because the operation only make one successor, list it logically	
+    )
+	)))
+
+(defun West (state)
+  (let ((newstate nil))
+
+  (cond
+  ( (<= (second (fifth state)) 0) nil)   ;blank can't move south
+    
+  (t (setf newstate
+     (swap (copy-tree state) 
+             (first (fifth state))   ;from row
+             (second (fifth state))  ;from column
+             (first (fifth state))  ;to row
+             (- (second (fifth state)) 1)) ;to column
+
+    )
+    (list newstate) ;because the operation only make one successor, list it logically	
+    )
+	)))
+
+(defun East (state)
+  (let ((newstate nil))
+
+  (cond
+  ( (>= (second (fifth state)) 3) nil)   ;blank can't move south
+    
+  (t (setf newstate
+     (swap (copy-tree state) 
+             (first (fifth state))   ;from row
+             (second (fifth state))  ;from column
+             (first (fifth state))  ;to row
+             (+ (second (fifth state)) 1)) ;to column
+
+    )
+    (list newstate) ;because the operation only make one successor, list it logically	
+    )
+	)))
+
+(defun swap (state from-row from-col to-row to-col)
+ (let ( (temp nil) )
+ 
+     (setf temp (nth from-col (nth from-row state))) ;just a simple swap
+
+     (setf (nth from-col (nth from-row state))
+           (nth to-col (nth to-row state)))
+     (setf (nth to-col (nth to-row state)) temp)
+ 
+     (setf (fifth state) (list to-row to-col))  ;and update of where
+                                                ;the blanks now resides
+     state) ;close the let and the value of state is return as the 
+            ;last expression evaluated in the let environment
+ ) ;close the defun return whatever let returns, i.e. a new state
+
