@@ -4,35 +4,30 @@
 (Defun Parent (node) (third node))
 
 (defun iddfs (s0 sg sons depth increment)
-	(if dfs-bound(s0 sg sons depth)
-		(return t)
-		(iddfs s0 sg sons (+ depth increment))))
+	(if (DBDFS	(list s0 nil nil) ; make a node to fit the argument of dbdfs
+					sg 
+					sons 
+					depth) 
+		(return-from iddfs t)
+		(iddfs s0 sg sons (+ depth increment) increment)))
 		
-(defun dfs-bound (s0 sg sons depth)
-	
-	)
-
-
-(defun dfs (s0 sg sons) 
-(let ( ( open (list (list s0 nil nil) ) ) ;note the inner list is a node 
-    ( closed nil ) 
-    ( n nil ) 
-    ( daughters nil )) ;ok i added another one 
-    (loop 
-		(if (null open) (return 'fail)) 
-		(setf n (pop open)) ;Ok, remove the first node 
-		;and update open and 
-		(push n closed) ;update closed with n since we expand it next
-		(if (**equal** (State n) sg)  
-			(return (trace-solution n)) )
-		(setf daughters (funcall sons n))   ;daughters is a list type
-		(setf daughters 
-			(DIFF daughters (append open closed) #'compNode)) ;Remove duplicate states 
-		;previously explored and residing on either open or closed
-		(setf open (append daughters open)) ;open is used as a QUEUE, thus its bfs.
-	) ;closes loop 
-) ;closes let 
-) ;closes defun
+(defun DBDFS (node goal successors depth)
+  (let  ( (daughters nil) )  
+   (if (**equal** (state node) goal) (return-from DBDFS (trace-solution node))) ;base case
+   (if (= depth 1) (return-from DBDFS nil)) ;touch the limit with no goal approached
+   (setf daughters (funcall successors node)) 
+   (loop             ;iterate all the approachable sons, but didn't use open, closed list to help
+     (if (null daughters) (return-from DBDFS nil)) 
+     (if (DBDFS        ;recursive call with
+                   (pop daughters) ;the first of daughters& daughters updated
+                   goal            ;same old goal state
+                   successors      ;same old set of operators
+                   (- depth 1))    ;but a shallower depth!
+         (return-from DBDFS t) ;here we did find a solution so we leave happy
+       ) ;end if
+        ) ;ends loop
+         ) ;ends let
+          ) ;ends defun 
 
 (defun **equal** (a b)
     (equal a b))
